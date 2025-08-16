@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Stellar Quest - Multi Game Demo</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;user-select:none;}
+  body{height:100vh;width:100vw;font-family:'Montserrat',Arial,sans-serif;background:linear-gradient(270deg,#0f0c29,#302b63,#24243e);color:#f0e7ff;overflow-x:hidden;display:flex;justify-content:center;align-items:center;background-size:600% 600%;animation: nebulaAnimation 30s ease infinite;}
+  @keyframes nebulaAnimation{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
+  #container{width:410px;min-height:570px;background:rgba(20,18,35,0.97);border-radius:22px;box-shadow:0 0 34px #7b5bbd,inset 0 0 46px #373064;text-align:center;position:relative;padding:38px 18px 24px 18px;overflow:hidden;}
+  .planet-orb{position:absolute;border-radius:50%;opacity:0.16;z-index:0;}
+  .orb1{width:120px;height:120px;top:14px;left:-55px;box-shadow:0 0 18px #b084ff,0 0 34px #9c7cff;}
+  .orb2{width:88px;height:88px;right:-36px;bottom:120px;box-shadow:0 0 16px #e3c0ff;}
+  .orb3{width:60px;height:60px;right:12px;top:85px;box-shadow:0 0 12px #c6aaff;}
+  h1.title{font-family:'Orbitron',Arial,sans-serif;font-size:2rem;color:#e8caff;text-shadow:0 0 12px #b184ff;}
+  p.subtitle{font-size:1rem;color:#bcace7;margin-bottom:32px;font-weight:600;}
+  .hidden{display:none;}
+  #login-section input{width:97%;padding:12px 14px;font-size:1rem;border-radius:12px;border:none;outline:none;background:#251f42cc;color:#f0e7ff;box-shadow:inset 0 0 6px #9d87ffaa;margin-bottom:10px;}
+  #login-section input:focus{background:#3e3678e0;box-shadow:0 0 10px #dbafff;}
+  #login-btn{background:linear-gradient(90deg,#ac7eff,#dbb7ff);margin:12px 0 0 0;padding:10px 42px;border-radius:20px;font-weight:600;font-size:1rem;color:#2c1a6f;border:none;box-shadow:0 0 8px #baa4ef;cursor:pointer;}
+  #login-btn:hover,#login-btn:focus{background:linear-gradient(90deg,#bd99f7,#f7deff);}
+  .error-msg{height:24px;color:#ef476f;font-size:.98rem;font-weight:700;}
+  section{margin-top:0;display:none;}
+  section.active{display:block;}
+  h1#welcome-name{margin:15px 0 20px 0;font-size:1.3rem;}
+  nav{margin:6px 0 0 0;display:grid;grid-template-columns:repeat(2,1fr);gap:11px;}
+  .nav-btn{background:linear-gradient(90deg,#a079f7,#dbc4ff);border:none;color:#24243e;font-weight:700;border-radius:18px;box-shadow:0 0 8px #af87d8;font-size:.98rem;cursor:pointer;padding:10px 0;}
+  .nav-btn:hover,.nav-btn:focus{background:linear-gradient(90deg,#debcff,#f2e7ff);}
+  #logout-btn{grid-column:span 2;background:linear-gradient(90deg,#e8dbff,#f2e7ff);}
+  .info-block{margin:28px 0 0 0;color:#c5b3ed;}
+  .profile-block,.game-block,.watch-block,.about-block{margin:13px 0 0 0;color:#d9caff;}
+  ul.video-list{text-align:left;margin:17px 0 0 0;padding-left:0;}
+  ul.video-list li{margin-bottom:7px;}
+  ul.video-list a{color:#bbaaff;text-decoration:underline;}
+  @media(max-width:500px){#container{width:97vw;}h1.title{font-size:1.15rem;}}
+  /* Game Boxes */
+  .game-box{margin:19px 3px 0 3px;border-radius:18px;background:rgba(45,35,59,0.46);box-shadow:0 0 16px #bbaaff;padding:16px;}
+  .game-tabs{display:flex;justify-content:center;gap:10px;margin-bottom:22px;}
+  .game-tab-btn{padding:7px 18px;border-radius:15px;border:none;background:#bdaaff;color:#341c5f;font-weight:700;cursor:pointer;box-shadow: 0 0 7px #ddbaff;transition:all .2s;}
+  .game-tab-btn.active{background:#d3b7ff;color:#301264;}
+  .game-tab-btn:hover{background:#eaddff;}
+  /* Quiz */
+  .quiz-question,.gplanet-q,.oddone-q{font-weight:700;color:#ede2ff;font-size:1.06rem;}
+  .quiz-options,.gplanet-opts,.oddone-opts{list-style:none;margin:15px 0 12px 0;padding:0;}
+  .quiz-options li,.gplanet-opts li,.oddone-opts li{margin-bottom:10px;}
+  .quiz-btn,.gplanet-btn,.oddone-btn{background:linear-gradient(90deg,#deb2ff,#86deff);border:none;color:#26003b;border-radius:12px;font-weight:700;padding:7px 0;width:100%;box-shadow:0 0 7px #b9d4ff;font-size:1rem;cursor:pointer;}
+  .quiz-btn:hover,.gplanet-btn:hover,.oddone-btn:hover{background:linear-gradient(90deg,#c8b6ff,#f7deff);}
+  .quiz-result,.gplanet-result,.oddone-result{color:#cef6d6;font-weight:700;margin:18px 0 12px 0;}
+  #quiz-score,.gplanet-score,.oddone-score{font-size:.99rem;color:#bdd2ff;font-weight:600;margin-top:9px;}
+</style>
+</head>
+<body>
+<div id="container">
+  <div class="planet-orb orb1"></div>
+  <div class="planet-orb orb2"></div>
+  <div class="planet-orb orb3"></div>
+  <!-- LOGIN SECTION -->
+  <section id="login-section" class="active">
+    <h1 class="title">Stellar Quest</h1>
+    <p class="subtitle">Explore the Universe — Play, Learn, and Win!</p>
+    <form id="loginForm">
+      <input id="usernameInput" type="text" maxlength="20" autocomplete="off" placeholder="Enter your astronaut name" />
+      <div id="loginError" class="error-msg"></div>
+      <button id="login-btn" type="submit">Login</button>
+    </form>
+  </section>
+  <!-- HOME SECTION -->
+  <section id="home-section">
+    <h2 style="margin:10px 0 7px 0;">Youth Astronomy And Space Science Congress - 2025</h2>
+    <div class="info-block">
+      Author: Prameesha<br/>
+      Sri Eshwar College Of Engineering, Coimbatore<br/>
+      <a href="mailto:prameesha.p2024csbs@sece.ac.in" style="color:#e6c7ff;">prameesha.p2024csbs@sece.ac.in</a>
+    </div>
+    <h1 id="welcome-name"></h1>
+    <nav>
+      <button class="nav-btn" id="playGameBtn">Play Game</button>
+      <button class="nav-btn" id="profileBtn">Profile</button>
+      <button class="nav-btn" id="watchLearnBtn">Watch & Learn</button>
+      <button class="nav-btn" id="aboutBtn">About Author</button>
+      <button class="nav-btn" id="logout-btn">Logout</button>
+    </nav>
+  </section>
+  <!-- PROFILE SECTION -->
+  <section id="profile-section">
+    <h1>Profile</h1>
+    <div class="profile-block">
+      <p>Feature coming soon.<br>Welcome, <span id="profileName"></span></p>
+    </div>
+    <button class="nav-btn" id="profileHomeBtn" style="margin-top:20px;">Back Home</button>
+  </section>
+  <!-- PLAY GAME SECTION -->
+  <section id="game-section">
+    <h1>Play Game</h1>
+    <div class="game-tabs">
+      <button class="game-tab-btn active" id="tabQuizBtn">Quiz</button>
+      <button class="game-tab-btn" id="tabGPlanetBtn">Guess the Planet</button>
+      <button class="game-tab-btn" id="tabOddOneBtn">Odd One Out</button>
+    </div>
+    <div class="game-box" id="quizGameBox">
+      <div class="quiz-question"></div>
+      <ul class="quiz-options"></ul>
+      <div class="quiz-result"></div>
+      <button class="nav-btn quiz-next hidden">Next Question</button>
+      <div id="quiz-score"></div>
+    </div>
+    <div class="game-box hidden" id="gplanetGameBox">
+      <div class="gplanet-q"></div>
+      <ul class="gplanet-opts"></ul>
+      <div class="gplanet-result"></div>
+      <button class="nav-btn gplanet-next hidden">Next Clue</button>
+      <div class="gplanet-score"></div>
+    </div>
+    <div class="game-box hidden" id="oddoneGameBox">
+      <div class="oddone-q"></div>
+      <ul class="oddone-opts"></ul>
+      <div class="oddone-result"></div>
+      <button class="nav-btn oddone-next hidden">Next</button>
+      <div class="oddone-score"></div>
+    </div>
+    <button class="nav-btn" id="gameHomeBtn" style="margin-top:20px;">Back Home</button>
+  </section>
+  <!-- WATCH & LEARN SECTION -->
+  <section id="watch-section">
+    <h1>Watch & Learn</h1>
+    <div class="watch-block">
+      <ul class="video-list">
+        <li><a href="https://youtu.be/libKVRa01LQ" target="_blank">Meet the Solar System</a></li>
+        <li><a href="https://youtu.be/UoBN_7XCoNc" target="_blank">What is a Black Hole?</a></li>
+        <li><a href="https://youtu.be/RgXaa5-3T80" target="_blank">Top 5 Space Discoveries!</a></li>
+        <li><a href="https://youtu.be/YekF2uhxrPQ" target="_blank">How Stars are Born</a></li>
+        <li><a href="https://youtu.be/Dywgh7IppNU" target="_blank">Moon Landing Explained!</a></li>
+      </ul>
+    </div>
+    <button class="nav-btn" id="watchHomeBtn" style="margin-top:20px;">Back Home</button>
+  </section>
+  <!-- ABOUT SECTION -->
+  <section id="about-section">
+    <h1>About Author</h1>
+    <div class="about-block">
+      <p>Name: Prameesha<br>
+        College: Sri Eshwar College Of Engineering, Coimbatore<br>
+        Contact: <a href="mailto:prameesha.p2024csbs@sece.ac.in">prameesha.p2024csbs@sece.ac.in</a>
+      </p>
+    </div>
+    <button class="nav-btn" id="aboutHomeBtn" style="margin-top:20px;">Back Home</button>
+  </section>
+</div>
+<script>
+(function(){
+  // Section Switch Utility
+  function show(sectionId){
+    ['login-section','home-section','profile-section','game-section','watch-section','about-section']
+      .forEach(id=>document.getElementById(id).classList.remove('active'));
+    document.getElementById(sectionId).classList.add('active');
+  }
+  // Login
+  document.getElementById('loginForm').onsubmit=function(e){
+    e.preventDefault();
+    var name = document.getElementById('usernameInput').value.trim();
+    var err = document.getElementById('loginError');
+    if(name.length<2){
+      err.textContent = "Please enter a valid astronaut name.";
+      return;
+    }
+    err.textContent = "";
+    window.sessionStorage.setItem("stellarName",name);
+    document.getElementById('welcome-name').textContent = "Welcome, " + name + "!";
+    show('home-section');
+    resetAllGames();
+  };
+  document.getElementById('profileBtn').onclick = function(){
+    document.getElementById('profileName').textContent=window.sessionStorage.getItem("stellarName")||"Astronaut";
+    show('profile-section');
+  };
+  document.getElementById('playGameBtn').onclick = function(){
+    showGameTab('quizGameBox');startQuiz();show('game-section');
+  };
+  document.getElementById('watchLearnBtn').onclick = function(){
+    show('watch-section');
+  };
+  document.getElementById('aboutBtn').onclick = function(){
+    show('about-section');
+  };
+  document.getElementById('logout-btn').onclick = function(){
+    window.sessionStorage.removeItem("stellarName");
+    document.getElementById('usernameInput').value="";
+    show('login-section');
+    resetAllGames();
+  };
+  document.getElementById('profileHomeBtn').onclick = function(){show('home-section');};
+  document.getElementById('gameHomeBtn').onclick = function(){show('home-section');resetAllGames();};
+  document.getElementById('watchHomeBtn').onclick = function(){show('home-section');};
+  document.getElementById('aboutHomeBtn').onclick = function(){show('home-section');};
+
+  // ---- Multi-Game Logic -----
+  function showGameTab(tabId){
+    ['quizGameBox','gplanetGameBox','oddoneGameBox'].forEach(id=>{
+      document.getElementById(id).classList.add('hidden');
+    });
+    document.getElementById(tabId).classList.remove('hidden');
+    ['tabQuizBtn','tabGPlanetBtn','tabOddOneBtn'].forEach(id=>{
+      document.getElementById(id).classList.remove('active');
+    });
+    if(tabId==='quizGameBox') document.getElementById('tabQuizBtn').classList.add('active');
+    if(tabId==='gplanetGameBox') document.getElementById('tabGPlanetBtn').classList.add('active');
+    if(tabId==='oddoneGameBox') document.getElementById('tabOddOneBtn').classList.add('active');
+  }
+  document.getElementById('tabQuizBtn').onclick = function(){
+    showGameTab('quizGameBox');startQuiz();
+  };
+  document.getElementById('tabGPlanetBtn').onclick = function(){
+    showGameTab('gplanetGameBox');startGPlanet();
+  };
+  document.getElementById('tabOddOneBtn').onclick = function(){
+    showGameTab('oddoneGameBox');startOddOne();
+  };
+
+  function resetAllGames(){
+    resetQuiz();resetGPlanet();resetOddOne();
+  }
+
+  // --- Quiz Game ---
+  const quizData = [
+    {q:"Which planet is called the Red Planet?",opts:["Earth","Mars","Jupiter","Venus"],a:1},
+    {q:"What is the largest planet in our solar system?",opts:["Saturn","Neptune","Jupiter","Mercury"],a:2},
+    {q:"How many planets are in the Solar System?",opts:["7","8","9","6"],a:1},
+    {q:"Which planet has the most moons?",opts:["Saturn","Mars","Jupiter","Neptune"],a:0},
+    {q:"What is the closest star to the Earth?",opts:["Sirius","Alpha Centauri","Betelgeuse","The Sun"],a:3},
+    {q:"What does a telescope help you do?",opts:["Read books","See stars","Cook food","Fly planes"],a:1},
+    {q:"Which planet is famous for its rings?",opts:["Uranus","Mercury","Saturn","Mars"],a:2},
+    {q:"Who was the first person on the Moon?",opts:["Yuri Gagarin","Neil Armstrong","Sally Ride","Buzz Aldrin"],a:1},
+    {q:"What is a black hole?",opts:["A planet","A vacuum cleaner","A region of space with strong gravity","A type of comet"],a:2},
+    {q:"What kind of galaxy is the Milky Way?",opts:["Spiral","Elliptical","Irregular","Dwarf"],a:0}
+  ];
+  let quizIdx=0,quizScore=0;
+  function startQuiz(){quizIdx=0;quizScore=0;renderQuiz();document.querySelector('.quiz-result').textContent="";document.querySelector('.quiz-next').classList.add('hidden');document.getElementById('quiz-score').textContent="";}
+  function renderQuiz(){
+    if(quizIdx>=quizData.length){
+      document.querySelector('.quiz-question').textContent="Quiz Completed!";
+      document.querySelector('.quiz-options').innerHTML="";
+      document.getElementById('quiz-score').textContent="Your score: "+quizScore+" / "+quizData.length;
+      document.querySelector('.quiz-result').textContent="🎉 Well done!";
+      document.querySelector('.quiz-next').classList.add('hidden');
+      return;
+    }
+    const data = quizData[quizIdx];
+    document.querySelector('.quiz-question').textContent=(quizIdx+1)+". "+data.q;
+    document.getElementById('quiz-score').textContent="Score: "+quizScore+" / "+quizData.length;
+    const ul = document.querySelector('.quiz-options');
+    ul.innerHTML="";
+    data.opts.forEach((opt,i)=>{
+      const li=document.createElement('li');
+      const btn=document.createElement('button');
+      btn.className='quiz-btn';
+      btn.textContent=opt;
+      btn.onclick=function(){
+        if(i===data.a){
+          document.querySelector('.quiz-result').textContent="Correct!";
+          quizScore++;
+        }else{
+          document.querySelector('.quiz-result').textContent="Wrong! The answer is "+data.opts[data.a]+".";
+        }
+        Array.from(ul.querySelectorAll("button")).forEach(b=>b.disabled=true);
+        document.querySelector('.quiz-next').classList.remove('hidden');
+      };
+      li.appendChild(btn); ul.appendChild(li);
+    });
+    document.querySelector('.quiz-next').onclick=function(){document.querySelector('.quiz-result').textContent="";quizIdx++;renderQuiz();};
+    document.querySelector('.quiz-next').classList.add('hidden');
+  }
+  function resetQuiz(){quizIdx=0;quizScore=0;document.querySelector('.quiz-question').textContent="";document.querySelector('.quiz-options').innerHTML="";document.querySelector('.quiz-result').textContent="";document.querySelector('.quiz-next').classList.add('hidden');document.getElementById('quiz-score').textContent="";}
+
+  // --- Guess the Planet Game ---
+  const gPlanetData = [
+    {clue:"I am the hottest planet in the solar system.",opts:["Earth","Venus","Mars","Jupiter"],a:1},
+    {clue:"I have Great Red Spot and am very large.",opts:["Saturn","Mercury","Jupiter","Neptune"],a:2},
+    {clue:"I am closest to the Sun.",opts:["Earth","Mercury","Venus","Mars"],a:1},
+    {clue:"I am known for my prominent rings.",opts:["Saturn","Uranus","Jupiter","Mars"],a:0},
+    {clue:"I am called the Blue Planet.",opts:["Earth","Neptune","Venus","Mars"],a:0}
+  ];
+  let gpIdx=0,gpScore=0;
+  function startGPlanet(){gpIdx=0;gpScore=0;renderGPlanet();document.querySelector('.gplanet-result').textContent="";document.querySelector('.gplanet-next').classList.add('hidden');document.querySelector('.gplanet-score').textContent="";}
+  function renderGPlanet(){
+    if(gpIdx>=gPlanetData.length){
+      document.querySelector('.gplanet-q').textContent="Game Completed!";
+      document.querySelector('.gplanet-opts').innerHTML="";
+      document.querySelector('.gplanet-result').textContent="Score: "+gpScore+" / "+gPlanetData.length;
+      document.querySelector('.gplanet-next').classList.add('hidden');
+      return;
+    }
+    const data = gPlanetData[gpIdx];
+    document.querySelector('.gplanet-q').textContent="Clue: "+data.clue;
+    document.querySelector('.gplanet-score').textContent="Score: "+gpScore+" / "+gPlanetData.length;
+    const ul = document.querySelector('.gplanet-opts');
+    ul.innerHTML="";
+    data.opts.forEach((opt,i)=>{
+      const li=document.createElement('li');
+      const btn=document.createElement('button');
+      btn.className='gplanet-btn';
+      btn.textContent=opt;
+      btn.onclick=function(){
+        if(i===data.a){
+          document.querySelector('.gplanet-result').textContent="Correct!";
+          gpScore++;
+        }else{
+          document.querySelector('.gplanet-result').textContent="Wrong! Answer: "+data.opts[data.a];
+        }
+        Array.from(ul.querySelectorAll("button")).forEach(b=>b.disabled=true);
+        document.querySelector('.gplanet-next').classList.remove('hidden');
+      };
+      li.appendChild(btn);ul.appendChild(li);
+    });
+    document.querySelector('.gplanet-next').onclick=function(){document.querySelector('.gplanet-result').textContent="";gpIdx++;renderGPlanet();};
+    document.querySelector('.gplanet-next').classList.add('hidden');
+  }
+  function resetGPlanet(){gpIdx=0;gpScore=0;document.querySelector('.gplanet-q').textContent="";document.querySelector('.gplanet-opts').innerHTML="";document.querySelector('.gplanet-result').textContent="";document.querySelector('.gplanet-next').classList.add('hidden');document.querySelector('.gplanet-score').textContent="";}
+
+  // --- Odd One Out Game ---
+  const oddOneData = [
+    {q:"Which is NOT a planet?",opts:["Mercury","Earth","Pluto","Saturn"],a:2},
+    {q:"Which does NOT orbit the Sun?",opts:["Earth","Mars","Moon","Jupiter"],a:2},
+    {q:"Which is NOT a star?",opts:["Sun","Alpha Centauri","Mars","Sirius"],a:2},
+    {q:"Which is NOT in the Solar System?",opts:["Venus","Mars","Saturn","Polaris"],a:3},
+    {q:"Which is NOT a moon?",opts:["Europa","Titan","Mercury","Phobos"],a:2}
+  ];
+  let ooIdx=0,ooScore=0;
+  function startOddOne(){ooIdx=0;ooScore=0;renderOddOne();document.querySelector('.oddone-result').textContent="";document.querySelector('.oddone-next').classList.add('hidden');document.querySelector('.oddone-score').textContent="";}
+  function renderOddOne(){
+    if(ooIdx>=oddOneData.length){
+      document.querySelector('.oddone-q').textContent="Game Completed!";
+      document.querySelector('.oddone-opts').innerHTML="";
+      document.querySelector('.oddone-result').textContent="Score: "+ooScore+" / "+oddOneData.length;
+      document.querySelector('.oddone-next').classList.add('hidden');
+      return;
+    }
+    const data = oddOneData[ooIdx];
+    document.querySelector('.oddone-q').textContent=(ooIdx+1)+". "+data.q;
+    document.querySelector('.oddone-score').textContent="Score: "+ooScore+" / "+oddOneData.length;
+    const ul = document.querySelector('.oddone-opts');
+    ul.innerHTML="";
+    data.opts.forEach((opt,i)=>{
+      const li=document.createElement('li');
+      const btn=document.createElement('button');
+      btn.className='oddone-btn';
+      btn.textContent=opt;
+      btn.onclick=function(){
+        if(i===data.a){
+          document.querySelector('.oddone-result').textContent="Correct!";
+          ooScore++;
+        }else{
+          document.querySelector('.oddone-result').textContent="Wrong! Answer: "+data.opts[data.a];
+        }
+        Array.from(ul.querySelectorAll("button")).forEach(b=>b.disabled=true);
+        document.querySelector('.oddone-next').classList.remove('hidden');
+      };
+      li.appendChild(btn);ul.appendChild(li);
+    });
+    document.querySelector('.oddone-next').onclick=function(){document.querySelector('.oddone-result').textContent="";ooIdx++;renderOddOne();};
+    document.querySelector('.oddone-next').classList.add('hidden');
+  }
+  function resetOddOne(){ooIdx=0;ooScore=0;document.querySelector('.oddone-q').textContent="";document.querySelector('.oddone-opts').innerHTML="";document.querySelector('.oddone-result').textContent="";document.querySelector('.oddone-next').classList.add('hidden');document.querySelector('.oddone-score').textContent="";}
+
+  // --- Initialize ---
+  show('login-section');
+})();
+</script>
+</body>
+</html>
